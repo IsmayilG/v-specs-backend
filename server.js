@@ -3,6 +3,12 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 require('dotenv').config();
 
+// --- YENİ EKLENECEKLER (En üste) ---
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('./models/User'); // Yeni modelimiz
+const JWT_SECRET = "cok_gizli_bir_sifre_buraya_yaz"; // Normalde .env'de saklanır ama şimdilik burada olsun
+
 // Modelleri ve Veriyi Çağır
 const Player = require('./models/Player');
 const playersData = require('./playersData');
@@ -48,6 +54,71 @@ app.get('/api/players', async (req, res) => {
         res.json(players);
     } catch (error) {
         res.status(500).json({ message: "Veri çekilemedi" });
+    }
+});
+
+// --- 🔐 AUTH ROTALARI ---
+
+// 1. KAYIT OL (REGISTER)
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+
+        // Basit kontrol
+        if (!username || !email || !password) {
+            return res.status(400).json({ message: "Lütfen tüm alanları doldurun." });
+        }
+
+        // Şifreyi Gizle (Hash)
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Yeni kullanıcıyı oluştur
+        const newUser = new User({
+            username,
+            email,
+            password: hashedPassword
+        });
+
+        // Veritabanına kaydet
+        await newUser.save();
+
+        res.status(201).json({ message: "✅ Kayıt başarılı! Şimdi giriş yapabilirsiniz." });
+
+    } catch (error) {
+        // Eğer kullanıcı adı veya email zaten varsa hata verir
+        if (error.code === 11000) {
+            return res.status(400).json({ message: "Bu kullanıcı adı veya email zaten kullanılıyor." });
+        }
+        res.status(500).json({ message: "Sunucu hatası", error: error.message });
+    }
+});
+
+// 2. GİRİŞ YAP (LOGIN)
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Kullanıcıyı bul
+        const user = await User.findOne({ email });
+        if (!user) return res.status(400).json({ message: "Kullanıcı bulunamadı." });
+
+        // Şifreyi kontrol et (Girilen şifre ile veritabanındaki şifreli halini kıyasla)
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ message: "Hatalı şifre!" });
+
+        // Kimlik Kartı (Token) oluştur
+        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+
+        res.json({
+            message: "Giriş Başarılı!",
+            token,
+            username: user.username,
+            mySetup: user.mySetup
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: "Sunucu hatası" });
     }
 });
 

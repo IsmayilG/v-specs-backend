@@ -7,7 +7,7 @@ const playersData = [
         "agents": ["Omen", "KAY/O", "Gekko"],
         "roles": ["Controller", "Initiator"],
         "sensitivity": "0.175 @ 1600 DPI",
-        "crosshair": "0;s;1;P;c;5;h;0;m;1;0l;4;0o;2;0a;1;0f;0;1b;0",
+        "crosshair": "0;s;1;P;c;5;h;0;m;1;0l;4;0o;2;0a;1;0t;2;0f;0;1b;0;S;c;5;o;1",
         "resolution": "1920x1080",
         "dpi": 1600,
         "zoom_sensitivity": 1,
