@@ -122,6 +122,52 @@ app.post('/api/auth/login', async (req, res) => {
     }
 });
 
+// --- 🛡️ MIDDLEWARE (Güvenlik Kontrolü) ---
+// Bu fonksiyon, gelen istekte "Giriş Bileti" (Token) var mı diye bakar.
+const verifyToken = (req, res, next) => {
+    const token = req.header('auth-token');
+    if (!token) return res.status(401).json({ message: "Erişim Reddedildi. Giriş yapmalısınız." });
+
+    try {
+        const verified = jwt.verify(token, JWT_SECRET);
+        req.user = verified; // Token içindeki ID'yi (verified) isteğe ekle
+        next(); // Devam et
+    } catch (error) {
+        res.status(400).json({ message: "Geçersiz Token." });
+    }
+};
+
+// --- 👤 PROFİL ROTALARI ---
+
+// 1. Kendi Profilimi Getir (GET)
+app.get('/api/user/profile', verifyToken, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password'); // Şifreyi gönderme
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: "Profil getirilemedi." });
+    }
+});
+
+// 2. Ayarlarımı Güncelle (PUT)
+app.put('/api/user/profile', verifyToken, async (req, res) => {
+    try {
+        // Gelen verileri al (mouse, dpi, crosshair vs.)
+        const { mySetup } = req.body;
+
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user.id,
+            { $set: { mySetup: mySetup } }, // Sadece setup kısmını güncelle
+            { new: true } // Güncel halini geri döndür
+        ).select('-password');
+
+        res.json({ message: "✅ Ayarlar Kaydedildi!", user: updatedUser });
+
+    } catch (error) {
+        res.status(500).json({ message: "Güncelleme hatası." });
+    }
+});
+
 // --- 5. EN SON SUNUCUYU BAŞLAT ---
 app.listen(PORT, () => {
     console.log(`🔥 Sunucu çalışıyor: http://localhost:${PORT}`);
