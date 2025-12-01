@@ -663,5 +663,4 @@ const playersData = [
         "social": { "twitter": "BuZz", "twitch": "BuZz" }
     }
 ];
-
 module.exports = playersData;

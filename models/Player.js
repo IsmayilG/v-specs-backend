@@ -1,12 +1,10 @@
 const mongoose = require('mongoose');
-
-// Oyuncu Verisinin Şablonu (Schema)
 const PlayerSchema = new mongoose.Schema({
-    id: { type: Number, required: true, unique: true }, // ID zorunlu ve eşsiz
-    name: { type: String, required: true }, // İsim zorunlu
+    id: { type: Number, required: true, unique: true }, 
+    name: { type: String, required: true }, 
     team: { type: String, required: true },
     region: String,
-    agents: [String], // Birden fazla ajan olabilir (Dizi)
+    agents: [String], 
     roles: [String],
     sensitivity: String,
     crosshair: String,
@@ -30,5 +28,4 @@ const PlayerSchema = new mongoose.Schema({
         twitch: String
     }
 });
-
 module.exports = mongoose.model('Player', PlayerSchema);
