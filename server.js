@@ -4,8 +4,8 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('./models/User'); 
-const JWT_SECRET = "cok_gizli_bir_sifre_buraya_yaz"; 
+const User = require('./models/User');
+const JWT_SECRET = "cok_gizli_bir_sifre_buraya_yaz";
 const Player = require('./models/Player');
 const playersData = require('./playersData');
 const app = express();
@@ -80,30 +80,42 @@ const verifyToken = (req, res, next) => {
     if (!token) return res.status(401).json({ message: "Erişim Reddedildi. Giriş yapmalısınız." });
     try {
         const verified = jwt.verify(token, JWT_SECRET);
-        req.user = verified; 
-        next(); 
+        req.user = verified;
+        next();
     } catch (error) {
         res.status(400).json({ message: "Geçersiz Token." });
     }
 };
 app.get('/api/user/profile', verifyToken, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select('-password'); 
+        const user = await User.findById(req.user.id).select('-password');
         res.json(user);
     } catch (error) {
         res.status(500).json({ message: "Profil getirilemedi." });
     }
 });
+// 2. Ayarlarımı VE Resmimi Güncelle (PUT) - GARANTİLİ VERSİYON
 app.put('/api/user/profile', verifyToken, async (req, res) => {
     try {
-        const { updates } = req.body;
+        // Frontend'den gelen verileri tek tek alıyoruz
+        const { mySetup, avatar } = req.body;
+
+        // Veritabanına neyi güncelleyeceğini açıkça söylüyoruz
         const updatedUser = await User.findByIdAndUpdate(
             req.user.id,
-            { $set: { updates } }, 
-            { new: true } 
+            {
+                $set: {
+                    mySetup: mySetup, // User.js'deki mySetup alanına -> gelen mySetup'ı koy
+                    avatar: avatar    // User.js'deki avatar alanına -> gelen avatar'ı koy
+                }
+            },
+            { new: true }
         ).select('-password');
-        res.json({ message: "✅ Ayarlar Kaydedildi!", user: updatedUser });
+
+        res.json({ message: "✅ Profil Güncellendi!", user: updatedUser });
+
     } catch (error) {
+        console.error(error); // Hatayı terminale yazdır ki görelim
         res.status(500).json({ message: "Güncelleme hatası." });
     }
 });
