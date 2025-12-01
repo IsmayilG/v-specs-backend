@@ -2,6 +2,22 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 require('dotenv').config();
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const multer = require('multer');
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'v-specs-avatars', // Cloudinary'de bu klasöre kaydedecek
+        allowed_formats: ['jpg', 'png', 'jpeg', 'webp'], // İzin verilenler
+    },
+});
+const upload = multer({ storage: storage });
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('./models/User');
@@ -121,4 +137,14 @@ app.put('/api/user/profile', verifyToken, async (req, res) => {
 });
 app.listen(PORT, () => {
     console.log(`🔥 Sunucu çalışıyor: http://localhost:${PORT}`);
+});
+// 3. RESİM YÜKLEME ROTASI (Yeni)
+// Kullanıcı dosya seçince buraya gelecek, biz de link döneceğiz.
+app.post('/api/upload', upload.single('image'), (req, res) => {
+    try {
+        // Yükleme başarılıysa Cloudinary bize dosya bilgisini verir
+        res.json({ url: req.file.path });
+    } catch (error) {
+        res.status(500).json({ message: "Resim yüklenemedi." });
+    }
 });
