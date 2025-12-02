@@ -1,4 +1,3 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -187,39 +186,42 @@ app.delete('/api/admin/players/:id', verifyToken, verifyAdmin, async (req, res) 
         res.status(500).json({ message: "Silme hatası" });
     }
 });
-// --- 🤖 YAPAY ZEKA KOÇU (V-CHAT) ---
+// --- 🤖 AI CHAT ROTASI (MANUEL BAĞLANTI - GARANTİLİ) ---
 app.post('/api/chat', async (req, res) => {
     try {
         const { message } = req.body;
+        const apiKey = process.env.GEMINI_API_KEY;
 
-        // Google Gemini'yi Başlat
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
-
-        // AI'a Rol Veriyoruz (Prompt Mühendisliği)
-        // Ona sadece bir bot olmadığını, bir Espor Koçu olduğunu söylüyoruz.
-        const chat = model.startChat({
-            history: [
-                {
-                    role: "user",
-                    parts: [{ text: "Sen V-SPECS adında, uzman bir Valorant ve Espor koçusun. Kısa, net, oyuncu diline hakim (crosshair placement, peek, eco round vb.) ve motive edici cevaplar ver. Asla kod yazma, sadece taktik ver." }],
-                },
-                {
-                    role: "model",
-                    parts: [{ text: "Anlaşıldı! Ben V-SPECS koçuyum. Ajanlar, haritalar, aim antrenmanları ve ekipmanlar konusunda profesyonel tavsiyeler vermeye hazırım. Sorunu gönder şampiyon! 🎯" }],
-                },
-            ],
+        // Kütüphane yerine direkt Google Linkine istek atıyoruz
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{
+                        text: `Sen V-SPECS adında, uzman bir Valorant koçusun. Kısa, net ve oyuncu diline hakim cevaplar ver. Soru: ${message}`
+                    }]
+                }]
+            })
         });
 
-        const result = await chat.sendMessage(message);
-        const response = await result.response;
-        const text = response.text();
+        const data = await response.json();
 
-        res.json({ reply: text });
+        // Google'dan gelen cevabı kontrol et
+        if (data.error) {
+            console.error("Google Hatası:", data.error);
+            return res.status(500).json({ reply: "Bir sorun oluştu: " + data.error.message });
+        }
+
+        // Cevabı al ve gönder
+        const replyText = data.candidates[0].content.parts[0].text;
+        res.json({ reply: replyText });
 
     } catch (error) {
-        console.error("AI Hatası:", error);
-        res.status(500).json({ reply: "Şu an sunucularımız çok yoğun, koçumuz maçta! 🎮 Lütfen biraz sonra tekrar dene." });
+        console.error("Sunucu Hatası:", error);
+        res.status(500).json({ reply: "Koç şu an cevap veremiyor. (Sunucu Hatası)" });
     }
 });
 app.listen(PORT, () => {
