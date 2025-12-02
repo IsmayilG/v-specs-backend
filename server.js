@@ -186,25 +186,33 @@ app.delete('/api/admin/players/:id', verifyToken, verifyAdmin, async (req, res) 
         res.status(500).json({ message: "Silme hatası" });
     }
 });
-// --- 🤖 AI CHAT ROTASI (MANUEL BAĞLANTI - FLASH MODEL) ---
+// --- 🤖 V-CHAT ROTASI (GROQ - LLAMA 3 MODELİ) ---
 app.post('/api/chat', async (req, res) => {
     try {
         const { message } = req.body;
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = process.env.GROQ_API_KEY;
 
-        // Google'ın en yeni ve standart modeli: gemini-1.5-flash
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
+        // Groq API'ına İstek Atıyoruz
+        const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json'
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                contents: [{
-                    parts: [{
-                        // Koç Rolü
-                        text: `Sen V-SPECS adında, uzman bir Valorant koçusun. Oyuncu sana şunu soruyor: "${message}". Ona kısa, taktiksel ve motive edici bir cevap ver.`
-                    }]
-                }]
+                // Model: Llama 3 (Çok hızlı ve zeki)
+                model: "llama3-8b-8192",
+                messages: [
+                    {
+                        role: "system",
+                        content: "Sen V-SPECS adında profesyonel bir Valorant koçusun. Oyunculara kısa, net, taktiksel ve motive edici cevaplar ver. Asla kod yazma, sadece oyun içi tavsiye ver."
+                    },
+                    {
+                        role: "user",
+                        content: message
+                    }
+                ],
+                temperature: 0.7
             })
         });
 
@@ -212,21 +220,17 @@ app.post('/api/chat', async (req, res) => {
 
         // Hata Kontrolü
         if (data.error) {
-            console.error("Google Hatası:", data.error);
+            console.error("Groq Hatası:", data.error);
             return res.status(500).json({ reply: "Hata: " + data.error.message });
         }
 
         // Cevabı Al
-        if (data.candidates && data.candidates[0].content) {
-            const replyText = data.candidates[0].content.parts[0].text;
-            res.json({ reply: replyText });
-        } else {
-            res.json({ reply: "Cevap alınamadı." });
-        }
+        const replyText = data.choices[0].message.content;
+        res.json({ reply: replyText });
 
     } catch (error) {
         console.error("Sunucu Hatası:", error);
-        res.status(500).json({ reply: "Sunucu hatası." });
+        res.status(500).json({ reply: "Koç şu an taktik tahtasına bakıyor... (Sunucu Hatası)" });
     }
 });
 app.listen(PORT, () => {
