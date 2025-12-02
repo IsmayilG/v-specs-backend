@@ -193,7 +193,7 @@ app.post('/api/chat', async (req, res) => {
         const apiKey = process.env.GEMINI_API_KEY;
 
         // Kütüphane yerine direkt Google Linkine istek atıyoruz
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
