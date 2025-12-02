@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
+
+// Oyuncu Verisinin Şablonu (Schema) - GÜNCELLENDİ
 const PlayerSchema = new mongoose.Schema({
-    id: { type: Number, required: true, unique: true }, 
-    name: { type: String, required: true }, 
+    id: { type: Number, required: true, unique: true },
+    name: { type: String, required: true },
     team: { type: String, required: true },
     region: String,
-    agents: [String], 
+    agents: [String],
     roles: [String],
     sensitivity: String,
     crosshair: String,
@@ -22,10 +24,23 @@ const PlayerSchema = new mongoose.Schema({
         monitor: String,
         headset: String
     },
+
+    // --- 💰 YENİ EKLENEN ALANLAR (PARA & CANLILIK) ---
+    twitchUser: { type: String, default: "" }, // Örn: "tenz" (Canlı yayın kontrolü için)
+
+    shopLinks: {
+        mouse: { type: String, default: "" },    // Amazon Affiliate Linki buraya
+        keyboard: { type: String, default: "" },
+        monitor: { type: String, default: "" },
+        headset: { type: String, default: "" }
+    },
+    // --------------------------------------------------
+
     image: String,
     social: {
         twitter: String,
         twitch: String
     }
 });
+
 module.exports = mongoose.model('Player', PlayerSchema);

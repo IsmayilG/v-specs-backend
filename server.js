@@ -135,6 +135,57 @@ app.put('/api/user/profile', verifyToken, async (req, res) => {
         res.status(500).json({ message: "Güncelleme hatası." });
     }
 });
+// --- 👑 ADMIN İŞLEMLERİ ---
+
+// Middleware: Sadece Adminler Geçebilir!
+const verifyAdmin = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (user && user.isAdmin) {
+            next(); // Geç patron!
+        } else {
+            res.status(403).json({ message: "Bu işlem için YETKİNİZ YOK!" });
+        }
+    } catch (err) {
+        res.status(500).json({ message: "Yetki kontrol hatası" });
+    }
+};
+
+// 1. YENİ OYUNCU EKLE (POST)
+app.post('/api/admin/players', verifyToken, verifyAdmin, async (req, res) => {
+    try {
+        const newPlayer = new Player(req.body);
+        await newPlayer.save();
+        res.json({ message: "✅ Oyuncu Eklendi!", player: newPlayer });
+    } catch (error) {
+        res.status(500).json({ message: "Ekleme hatası", error: error.message });
+    }
+});
+
+// 2. OYUNCU GÜNCELLE (PUT)
+app.put('/api/admin/players/:id', verifyToken, verifyAdmin, async (req, res) => {
+    try {
+        // ID'si verilen oyuncuyu bul ve gelen verilerle güncelle
+        const updated = await Player.findOneAndUpdate(
+            { id: req.params.id }, // Bizim özel ID'miz (1, 2, 3...)
+            { $set: req.body },
+            { new: true }
+        );
+        res.json({ message: "✅ Oyuncu Güncellendi!", player: updated });
+    } catch (error) {
+        res.status(500).json({ message: "Güncelleme hatası" });
+    }
+});
+
+// 3. OYUNCU SİL (DELETE)
+app.delete('/api/admin/players/:id', verifyToken, verifyAdmin, async (req, res) => {
+    try {
+        await Player.findOneAndDelete({ id: req.params.id });
+        res.json({ message: "🗑️ Oyuncu Silindi!" });
+    } catch (error) {
+        res.status(500).json({ message: "Silme hatası" });
+    }
+});
 app.listen(PORT, () => {
     console.log(`🔥 Sunucu çalışıyor: http://localhost:${PORT}`);
 });

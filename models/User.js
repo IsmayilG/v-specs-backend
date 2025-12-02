@@ -4,10 +4,8 @@ const UserSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-
-    // --- BU SATIRIN OLDUĞUNDAN EMİN OL ---
+    isAdmin: { type: Boolean, default: false },
     avatar: { type: String, default: "" },
-    // -------------------------------------
 
     mySetup: {
         mouse: { type: String, default: "" },
