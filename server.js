@@ -186,14 +186,14 @@ app.delete('/api/admin/players/:id', verifyToken, verifyAdmin, async (req, res) 
         res.status(500).json({ message: "Silme hatası" });
     }
 });
-// --- 🤖 AI CHAT ROTASI (MANUEL BAĞLANTI - GARANTİLİ) ---
+// --- 🤖 AI CHAT ROTASI (FİNAL VERSİYON) ---
 app.post('/api/chat', async (req, res) => {
     try {
         const { message } = req.body;
         const apiKey = process.env.GEMINI_API_KEY;
 
-        // Kütüphane yerine direkt Google Linkine istek atıyoruz
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+        // Model ismini "gemini-1.5-flash" olarak güncelledik
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -209,19 +209,22 @@ app.post('/api/chat', async (req, res) => {
 
         const data = await response.json();
 
-        // Google'dan gelen cevabı kontrol et
         if (data.error) {
             console.error("Google Hatası:", data.error);
-            return res.status(500).json({ reply: "Bir sorun oluştu: " + data.error.message });
+            // Hata mesajını detaylı görelim
+            return res.status(500).json({ reply: "Hata: " + data.error.message });
         }
 
-        // Cevabı al ve gönder
-        const replyText = data.candidates[0].content.parts[0].text;
-        res.json({ reply: replyText });
+        if (data.candidates && data.candidates[0].content) {
+            const replyText = data.candidates[0].content.parts[0].text;
+            res.json({ reply: replyText });
+        } else {
+            res.json({ reply: "Cevap alınamadı. Lütfen tekrar dene." });
+        }
 
     } catch (error) {
         console.error("Sunucu Hatası:", error);
-        res.status(500).json({ reply: "Koç şu an cevap veremiyor. (Sunucu Hatası)" });
+        res.status(500).json({ reply: "Sunucu hatası." });
     }
 });
 app.listen(PORT, () => {
