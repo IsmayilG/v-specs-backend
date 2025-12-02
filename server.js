@@ -201,7 +201,7 @@ app.post('/api/chat', async (req, res) => {
             },
             body: JSON.stringify({
                 // Model: Llama 3 (Çok hızlı ve zeki)
-                model: "llama3-8b-8192",
+                model: "llama-3.3-70b-versatile",
                 messages: [
                     {
                         role: "system",
