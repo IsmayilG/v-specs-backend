@@ -235,3 +235,4 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
         res.status(500).json({ message: "Resim yüklenemedi." });
     }
 });
+// Render guncelleme v3
