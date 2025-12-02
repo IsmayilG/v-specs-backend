@@ -1,3 +1,4 @@
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -184,6 +185,41 @@ app.delete('/api/admin/players/:id', verifyToken, verifyAdmin, async (req, res) 
         res.json({ message: "🗑️ Oyuncu Silindi!" });
     } catch (error) {
         res.status(500).json({ message: "Silme hatası" });
+    }
+});
+// --- 🤖 YAPAY ZEKA KOÇU (V-CHAT) ---
+app.post('/api/chat', async (req, res) => {
+    try {
+        const { message } = req.body;
+
+        // Google Gemini'yi Başlat
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+
+        // AI'a Rol Veriyoruz (Prompt Mühendisliği)
+        // Ona sadece bir bot olmadığını, bir Espor Koçu olduğunu söylüyoruz.
+        const chat = model.startChat({
+            history: [
+                {
+                    role: "user",
+                    parts: [{ text: "Sen V-SPECS adında, uzman bir Valorant ve Espor koçusun. Kısa, net, oyuncu diline hakim (crosshair placement, peek, eco round vb.) ve motive edici cevaplar ver. Asla kod yazma, sadece taktik ver." }],
+                },
+                {
+                    role: "model",
+                    parts: [{ text: "Anlaşıldı! Ben V-SPECS koçuyum. Ajanlar, haritalar, aim antrenmanları ve ekipmanlar konusunda profesyonel tavsiyeler vermeye hazırım. Sorunu gönder şampiyon! 🎯" }],
+                },
+            ],
+        });
+
+        const result = await chat.sendMessage(message);
+        const response = await result.response;
+        const text = response.text();
+
+        res.json({ reply: text });
+
+    } catch (error) {
+        console.error("AI Hatası:", error);
+        res.status(500).json({ reply: "Şu an sunucularımız çok yoğun, koçumuz maçta! 🎮 Lütfen biraz sonra tekrar dene." });
     }
 });
 app.listen(PORT, () => {
