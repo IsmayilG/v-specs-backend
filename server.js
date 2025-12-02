@@ -186,14 +186,15 @@ app.delete('/api/admin/players/:id', verifyToken, verifyAdmin, async (req, res) 
         res.status(500).json({ message: "Silme hatası" });
     }
 });
-// --- 🤖 AI CHAT ROTASI (FİNAL VERSİYON) ---
+// --- 🤖 AI CHAT ROTASI (STABLE V1 BAĞLANTISI) ---
 app.post('/api/chat', async (req, res) => {
     try {
         const { message } = req.body;
         const apiKey = process.env.GEMINI_API_KEY;
 
-        // Model ismini "gemini-1.5-flash" olarak güncelledik
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.0-pro:generateContent?key=${apiKey}`, {
+        // DİKKAT: 'v1beta' yerine 'v1' kullanıyoruz (Daha kararlı)
+        // Model: 'gemini-pro' (En standart model)
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -211,7 +212,6 @@ app.post('/api/chat', async (req, res) => {
 
         if (data.error) {
             console.error("Google Hatası:", data.error);
-            // Hata mesajını detaylı görelim
             return res.status(500).json({ reply: "Hata: " + data.error.message });
         }
 
@@ -219,7 +219,7 @@ app.post('/api/chat', async (req, res) => {
             const replyText = data.candidates[0].content.parts[0].text;
             res.json({ reply: replyText });
         } else {
-            res.json({ reply: "Cevap alınamadı. Lütfen tekrar dene." });
+            res.json({ reply: "Cevap alınamadı." });
         }
 
     } catch (error) {
