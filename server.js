@@ -186,15 +186,14 @@ app.delete('/api/admin/players/:id', verifyToken, verifyAdmin, async (req, res) 
         res.status(500).json({ message: "Silme hatası" });
     }
 });
-// --- 🤖 AI CHAT ROTASI (STABLE V1 BAĞLANTISI) ---
+// --- 🤖 AI CHAT ROTASI (MANUEL BAĞLANTI - FLASH MODEL) ---
 app.post('/api/chat', async (req, res) => {
     try {
         const { message } = req.body;
         const apiKey = process.env.GEMINI_API_KEY;
 
-        // DİKKAT: 'v1beta' yerine 'v1' kullanıyoruz (Daha kararlı)
-        // Model: 'gemini-pro' (En standart model)
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`, {
+        // Google'ın en yeni ve standart modeli: gemini-1.5-flash
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -202,7 +201,8 @@ app.post('/api/chat', async (req, res) => {
             body: JSON.stringify({
                 contents: [{
                     parts: [{
-                        text: `Sen V-SPECS adında, uzman bir Valorant koçusun. Kısa, net ve oyuncu diline hakim cevaplar ver. Soru: ${message}`
+                        // Koç Rolü
+                        text: `Sen V-SPECS adında, uzman bir Valorant koçusun. Oyuncu sana şunu soruyor: "${message}". Ona kısa, taktiksel ve motive edici bir cevap ver.`
                     }]
                 }]
             })
@@ -210,11 +210,13 @@ app.post('/api/chat', async (req, res) => {
 
         const data = await response.json();
 
+        // Hata Kontrolü
         if (data.error) {
             console.error("Google Hatası:", data.error);
             return res.status(500).json({ reply: "Hata: " + data.error.message });
         }
 
+        // Cevabı Al
         if (data.candidates && data.candidates[0].content) {
             const replyText = data.candidates[0].content.parts[0].text;
             res.json({ reply: replyText });
