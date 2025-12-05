@@ -26,24 +26,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || "gizli_anahtar_varsayilan";
 
-const allowedOrigins = [
-    "https://v-specs.netlify.app", 
-    "http://localhost:5500",
-    "http://localhost:3000",
-    "http://127.0.0.1:5500"        
-];
-
-app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('CORS hatası: Bu adrese izin verilmiyor.'));
-        }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE"], 
-    credentials: true 
-}));
+app.use(cors());
 app.use(express.json());
 
 if (process.env.CLOUDINARY_CLOUD_NAME) {
