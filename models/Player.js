@@ -1,45 +1,32 @@
 const mongoose = require('mongoose');
 
-// Oyuncu Verisinin Şablonu (Schema) - GÜNCELLENDİ
 const PlayerSchema = new mongoose.Schema({
-    id: { type: Number, required: true, unique: true },
+    id: { type: Number, required: true },
     name: { type: String, required: true },
     team: { type: String, required: true },
-    region: String,
-    agents: [String],
-    roles: [String],
-    sensitivity: String,
-    crosshair: String,
-    resolution: String,
-    dpi: Number,
-    zoom_sensitivity: Number,
+    region: { type: String, required: true },
+    agents: [{ type: String }],
+    roles: [{ type: String }],
+    sensitivity: { type: String },
+    crosshair: { type: String },
+    resolution: { type: String },
+    dpi: { type: Number },
+    zoom_sensitivity: { type: Number },
     keybinds: {
-        ability1: String,
-        ability2: String,
-        ultimate: String
+        ability1: { type: String },
+        ability2: { type: String },
+        ultimate: { type: String }
     },
     hardware: {
-        mouse: String,
-        keyboard: String,
-        monitor: String,
-        headset: String
+        mouse: { type: String },
+        keyboard: { type: String },
+        monitor: { type: String },
+        headset: { type: String }
     },
-
-    // --- 💰 YENİ EKLENEN ALANLAR (PARA & CANLILIK) ---
-    twitchUser: { type: String, default: "" }, // Örn: "tenz" (Canlı yayın kontrolü için)
-
-    shopLinks: {
-        mouse: { type: String, default: "" },    // Amazon Affiliate Linki buraya
-        keyboard: { type: String, default: "" },
-        monitor: { type: String, default: "" },
-        headset: { type: String, default: "" }
-    },
-    // --------------------------------------------------
-
-    image: String,
+    image: { type: String },
     social: {
-        twitter: String,
-        twitch: String
+        twitter: { type: String },
+        twitch: { type: String }
     }
 });
 

@@ -5,18 +5,14 @@ const UserSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     isAdmin: { type: Boolean, default: false },
-    isPremium: { type: Boolean, default: false },
     avatar: { type: String, default: "" },
-
     mySetup: {
         mouse: { type: String, default: "" },
-        dpi: { type: Number, default: 800 },
-        sensitivity: { type: Number, default: 0.3 },
-        crosshair: { type: String, default: "" },
-        rank: { type: String, default: "Unranked" }
+        keyboard: { type: String, default: "" },
+        monitor: { type: String, default: "" },
+        headset: { type: String, default: "" }
     },
-    favorites: [Number]
-}, { timestamps: true });
+    createdAt: { type: Date, default: Date.now }
+});
 
 module.exports = mongoose.model('User', UserSchema);
-//hii
